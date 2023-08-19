@@ -1,5 +1,18 @@
 package ru.skyeng.postservice.model;
 
-public enum StatusDelivery {
-    ARRIVED_IN_POST_OFFICE, LEFT_IN_POST_OFFICE, READY_FOR_RECEIVING, RECEIVING;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+@Data
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name ="STATUS_DELIVERY")
+public class StatusDelivery {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String status;
 }

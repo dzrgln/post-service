@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class NewPostDelivery {
     private int index;
-    private String address;
+    private SenderAddress address;
     private String user;
 }

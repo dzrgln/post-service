@@ -5,7 +5,7 @@ import ru.skyeng.postservice.model.dto.NewPostDelivery;
 import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
 
 public interface PostService {
-    PostItem createPostDelivery(int idPostOffice, String typePostDelivery, NewPostDelivery postDelivery);
+    PostItem createPostItem(int idPostOffice, String typePostDelivery, NewPostDelivery postDelivery);
 
     PostItem registerArrivedPostDelivery(int ownIndex, long id);
 

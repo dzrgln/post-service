@@ -30,7 +30,7 @@ public class PostController {
         log.info("В отделении {} зарегистрировано и отправлено новое отправление - {} с параметрами:" +
                         "индекс - {}, адрес получателя - {}, имя получателя - {}",
                 ownIndex, typePostDelivery, postDelivery.getIndex(), postDelivery.getAddress(), postDelivery.getAddress());
-        return postService.createPostDelivery(ownIndex, typePostDelivery, postDelivery);
+        return postService.createPostItem(ownIndex, typePostDelivery, postDelivery);
     }
 
     @PatchExchange("/register/arrival")

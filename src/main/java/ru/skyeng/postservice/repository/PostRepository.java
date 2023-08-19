@@ -1,4 +1,7 @@
 package ru.skyeng.postservice.repository;
 
-public interface PostRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import ru.skyeng.postservice.model.PostItem;
+
+public interface PostRepository extends JpaRepository<PostItem, Long> {
 }
