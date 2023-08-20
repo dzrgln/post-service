@@ -17,9 +17,12 @@ public class PostOffice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "IND")
     private int index;
+
     private String name;
+
     @OneToMany
     private List<Address> addressList;
-    @ManyToMany(mappedBy = "path")
-    private List<PostItem> postItems;
+
+    @OneToMany(mappedBy = "office")
+    private List<StageDelivery> postalHistory;
 }

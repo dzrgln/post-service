@@ -13,15 +13,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
+@Table(name = "DELIVERY_STAGE")
 public class StageDelivery {
-    @Id
+    @EmbeddedId
+    StageDeliveryPK id;
+
     @ManyToOne
+    @MapsId("index")
     @JoinColumn(name = "OFFICE_ID")
     private PostOffice office;
-    @Id
+
     @ManyToOne
+    @MapsId("postItemId")
     @JoinColumn(name = "ITEM_ID")
     private PostItem item;
+
     @ManyToOne
     private StatusDelivery statusDelivery;
     @Column(name = "TIME_DELIVERY")

@@ -88,7 +88,7 @@ public class PostServiceImpl implements PostService {
         Optional<TypePostItem> optionalTypePostItem = typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem);
         TypePostItem typePostItem;
         if(optionalTypePostItem.isEmpty()){
-            throw new UnknownDataException("Указанный адрес отсутствует в базе");
+            throw new UnknownDataException("Ошибка в указании типа отправления");
         } else {
             typePostItem = optionalTypePostItem.get();
         }
@@ -112,7 +112,7 @@ public class PostServiceImpl implements PostService {
                 senderAddress.getFlatNumber());
         Address address;
         if(optionalAddress.isEmpty()){
-            throw new UnknownDataException("Указаный адрес отсутсвует в базе");
+            throw new UnknownDataException("Указанный адрес отсутствует в базе");
         } else {
             address = optionalAddress.get();
         }
