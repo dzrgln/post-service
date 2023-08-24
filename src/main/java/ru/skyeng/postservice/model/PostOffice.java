@@ -19,10 +19,4 @@ public class PostOffice {
     private int index;
 
     private String name;
-
-    @OneToMany
-    private List<Address> addressList;
-
-    @OneToMany(mappedBy = "office")
-    private List<StageDelivery> postalHistory;
 }

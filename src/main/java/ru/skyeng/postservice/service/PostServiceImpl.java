@@ -1,6 +1,7 @@
 package ru.skyeng.postservice.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -23,19 +25,6 @@ public class PostServiceImpl implements PostService {
     private final TypePostItemRepository typePostItemRepository;
     private final StageDeliveryRepository stageDeliveryRepository;
     private final PostOfficeRepository postOfficeRepository;
-
-    @Autowired
-    public PostServiceImpl(PostRepository postRepository,
-                           AddressRepository addressRepository,
-                           TypePostItemRepository typePostItemRepository,
-                           StageDeliveryRepository stageDeliveryRepository,
-                           PostOfficeRepository postOfficeRepository) {
-        this.postRepository = postRepository;
-        this.addressRepository = addressRepository;
-        this.typePostItemRepository = typePostItemRepository;
-        this.stageDeliveryRepository = stageDeliveryRepository;
-        this.postOfficeRepository = postOfficeRepository;
-    }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -75,7 +64,7 @@ public class PostServiceImpl implements PostService {
         return null;
     }
 
-    private StageDelivery fixStageDelivery(PostItem postItem, PostOffice postOffice, StatusDelivery status){
+    private StageDelivery fixStageDelivery(PostItem postItem, PostOffice postOffice, StatusDelivery status) {
         StageDelivery stageDelivery = StageDelivery.builder()
                 .item(postItem)
                 .office(postOffice)
@@ -84,21 +73,24 @@ public class PostServiceImpl implements PostService {
                 .build();
         return stageDeliveryRepository.save(stageDelivery);
     }
+
     private TypePostItem getTypePostItem(String aliasTypePostItem) {
-        Optional<TypePostItem> optionalTypePostItem = typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem);
-        TypePostItem typePostItem;
-        if(optionalTypePostItem.isEmpty()){
+
+        try {
+            PostType.valueOf(aliasTypePostItem.toUpperCase());
+            Optional<TypePostItem> optionalTypePostItem = typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem);
+            return optionalTypePostItem.get();
+        } catch (IllegalArgumentException e) {
             throw new UnknownDataException("Ошибка в указании типа отправления");
-        } else {
-            typePostItem = optionalTypePostItem.get();
         }
-        return typePostItem;
     }
+
+
     private PostOffice getPostOffice(int index) {
         Optional<PostOffice> optionalPostOffice = postOfficeRepository.getPostOfficeByIndex(index);
         PostOffice typePostItem;
-        if(optionalPostOffice.isEmpty()){
-            throw new UnknownDataException("Ошибка в индексе");
+        if (optionalPostOffice.isEmpty()) {
+            throw new UnknownDataException("Почтового отделения с индексом " + index + " не существует");
         } else {
             typePostItem = optionalPostOffice.get();
         }
@@ -110,12 +102,10 @@ public class PostServiceImpl implements PostService {
         Optional<Address> optionalAddress = addressRepository.getAddressBySenderAddress(senderAddress.getIndex(),
                 senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
                 senderAddress.getFlatNumber());
-        Address address;
-        if(optionalAddress.isEmpty()){
+        if (optionalAddress.isEmpty()) {
             throw new UnknownDataException("Указанный адрес отсутствует в базе");
         } else {
-            address = optionalAddress.get();
+            return optionalAddress.get();
         }
-        return address;
     }
 }

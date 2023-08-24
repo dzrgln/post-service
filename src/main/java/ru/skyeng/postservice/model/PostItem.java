@@ -20,19 +20,17 @@ public class PostItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(name = "IND")
+    private int index;
+
     @ManyToOne
     @JoinColumn(name = "TYPE_ITEM")
     private TypePostItem typePostItem;
 
-    @Column(name = "IND")
-    private int index;
-
     @ManyToOne()
     @JoinColumn(name="ADDRESS_ID")
     private Address address;
-    private String sender;
 
-    @OneToMany(mappedBy = "item")
-    private List<StageDelivery> path;
+    private String sender;
 }
 
