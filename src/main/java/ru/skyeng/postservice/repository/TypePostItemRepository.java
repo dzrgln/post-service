@@ -6,7 +6,7 @@ import ru.skyeng.postservice.model.TypePostItem;
 
 import java.util.Optional;
 
-public interface TypePostItemRepository extends JpaRepository <TypePostItem, Integer> {
+public interface TypePostItemRepository extends JpaRepository <TypePostItem, Long> {
 
     Optional<TypePostItem> getTypePostItemByAlias(String alias);
 }

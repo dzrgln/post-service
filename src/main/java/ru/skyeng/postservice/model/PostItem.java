@@ -1,10 +1,7 @@
 package ru.skyeng.postservice.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +11,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
+
 @Table(name = "POST_ITEMS")
 public class PostItem {
     @Id
@@ -27,7 +26,7 @@ public class PostItem {
     @JoinColumn(name = "TYPE_ITEM")
     private TypePostItem typePostItem;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name="ADDRESS_ID")
     private Address address;
 

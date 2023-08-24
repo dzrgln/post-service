@@ -3,13 +3,13 @@ package ru.skyeng.postservice.service;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.skyeng.postservice.exceptions.UnknownDataException;
 import ru.skyeng.postservice.model.*;
 import ru.skyeng.postservice.model.dto.NewPostDelivery;
 import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
 import ru.skyeng.postservice.model.dto.SenderAddress;
+import ru.skyeng.postservice.model.enums.PostType;
 import ru.skyeng.postservice.repository.*;
 
 import java.time.LocalDateTime;
@@ -18,9 +18,10 @@ import java.util.Optional;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class PostServiceImpl implements PostService {
+public class PostServiceImpl
+        implements PostService {
 
-    private final PostRepository postRepository;
+    private final PostItemsRepository postRepository;
     private final AddressRepository addressRepository;
     private final TypePostItemRepository typePostItemRepository;
     private final StageDeliveryRepository stageDeliveryRepository;

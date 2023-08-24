@@ -3,14 +3,12 @@ package ru.skyeng.postservice.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.skyeng.postservice.model.PostItem;
 import ru.skyeng.postservice.model.dto.DeliveryId;
 import ru.skyeng.postservice.model.dto.NewPostDelivery;
 import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
-import ru.skyeng.postservice.service.PostService;
+import ru.skyeng.postservice.service.PostServiceImpl;
 
 @RestController
 @Slf4j
@@ -18,7 +16,7 @@ import ru.skyeng.postservice.service.PostService;
 @RequestMapping("/e-posts")
 public class PostController {
 
-    private final PostService postService;
+    private final PostServiceImpl postService;
 
     @PostMapping("/new/{typePostDelivery}")
     public PostItem createPostDelivery(@RequestHeader("X-Post-Office-Id") int ownIndex,
@@ -46,7 +44,7 @@ public class PostController {
 
     @GetMapping()
     public PostItem receivePostItem(@RequestBody DeliveryId deliveryId) {
-        log.info("Посылка с трек-номером {} получена",deliveryId.getId());
+        log.info("Посылка с трек-номером {} получена", deliveryId.getId());
         return postService.registerReceivingPostDelivery(deliveryId.getId());
     }
 

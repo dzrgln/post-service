@@ -1,18 +1,15 @@
 package ru.skyeng.postservice.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
+@ToString
 @Table(name = "ADDRESSES")
 public class Address {
     @Id
