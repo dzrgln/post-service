@@ -1,5 +1,6 @@
 package ru.skyeng.postservice.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +14,15 @@ import ru.skyeng.postservice.model.enums.PostType;
 import ru.skyeng.postservice.repository.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @AllArgsConstructor
-public class PostServiceImpl
-        implements PostService {
+public class PostServiceImpl implements PostService {
 
     private final PostItemsRepository postRepository;
     private final AddressRepository addressRepository;
@@ -32,6 +35,7 @@ public class PostServiceImpl
     public PostItem createPostItem(int index, String aliasTypePostItem, NewPostDelivery postDelivery) {
         Address address = getAddress(postDelivery);
         TypePostItem typePostItem = getTypePostItem(aliasTypePostItem);
+        PostOffice postOffice = checkPostOfficeById(index);
         PostItem postItem = postRepository.save(PostItem.builder()
                 .typePostItem(typePostItem)
                 .address(address)
@@ -39,36 +43,82 @@ public class PostServiceImpl
                 .sender(postDelivery.getUser())
                 .build()
         );
-        fixStageDelivery(postItem, getPostOffice(index), new StatusDelivery(1, "Зарегистрировано в отделении"));
+        fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(1, "Зарегистрировано в отделении"));
         log.info("Saving was good id={}", postItem.getId());
-        System.out.println(postRepository.getReferenceById(postItem.getId()));
         return postItem;
     }
 
     @Override
+    public PostItem registerDeparturePostDelivery(int ownIndex, int recipientOfficeId, long id) {
+        PostOffice senderOffice = checkPostOfficeById(ownIndex);
+        PostOffice recipientOffice = checkPostOfficeById(recipientOfficeId);
+
+        PostItem postItem = checkDeliveryById(id);
+        if (checkIsItemInPostOffice(id, ownIndex)) {
+            fixStageDelivery(postItem, senderOffice, recipientOffice, new StatusDelivery(3, "Отправлено из отделения"));
+            log.info("Package moved OUT by Post Delivery successfully");
+            return postItem;
+        } else {
+            throw new UnknownDataException("Посылка сейчас находится не в том метсте, откуда пришел запрос на отправление");
+        }
+    }
+
+    @Override
     public PostItem registerArrivedPostDelivery(int ownIndex, long id) {
-        return null;
+        PostOffice postOffice = checkPostOfficeById(ownIndex);
+        PostItem postItem = checkDeliveryById(id);
+
+        if (checkIsItemToPostOffice(id, ownIndex)) {
+            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(2, "Прибыло в отделение"));
+            log.info("Package moved IN Post Delivery successfully");
+            return postItem;
+        } else {
+            throw new UnknownDataException("Посылка отправлена не в том метсте, откуда пришел запрос на отправление");
+        }
+    }
+
+
+    @Override
+    public PostItem registerReceivingPostDelivery(int ownIndex, long id) {
+        PostOffice postOffice = checkPostOfficeById(ownIndex);
+        PostItem postItem = checkDeliveryById(id);
+        if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
+            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(4, "Готово к выдаче"));
+            log.info("Package moved OUT by Post Delivery successfully");
+        } else {
+            throw new UnknownDataException("Посылка находится не в месте ее назначения");
+        }
+        return postItem;
     }
 
     @Override
-    public PostItem registerDeparturePostDelivery(int ownIndex, long deliveryId) {
-        return null;
-    }
-
-    @Override
-    public PostItem registerReceivingPostDelivery(long id) {
-        return null;
+    public PostItem registerReceivePostDelivery(int ownIndex, long id) {
+        PostOffice postOffice = checkPostOfficeById(ownIndex);
+        PostItem postItem = checkDeliveryById(id);
+        if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
+            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(5, "Получено адресатом"));
+            log.info("The package was successfully delivered to the recipient");
+        } else {
+            throw new UnknownDataException("Посылка находится не в месте где ее должны получить");
+        }
+        return postItem;
     }
 
     @Override
     public PostDeliveryHistory getHistory(long ownerId, long postId) {
+
+//        PostOffice postOffice = checkPostOffice(ownIndex);
+//        PostItem postItem = checkDeliveryId(id);
         return null;
     }
 
-    private StageDelivery fixStageDelivery(PostItem postItem, PostOffice postOffice, StatusDelivery status) {
+
+    private StageDelivery fixStageDelivery(PostItem postItem, PostOffice senderOffice,
+                                           PostOffice recipientOffice, StatusDelivery status) {
         StageDelivery stageDelivery = StageDelivery.builder()
                 .item(postItem)
-                .office(postOffice)
+                .senderOffice(senderOffice)
+                .recipientOffice(recipientOffice)
                 .statusDelivery(status)
                 .operationTime(LocalDateTime.now())
                 .build();
@@ -82,31 +132,79 @@ public class PostServiceImpl
             Optional<TypePostItem> optionalTypePostItem = typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem);
             return optionalTypePostItem.get();
         } catch (IllegalArgumentException e) {
-            throw new UnknownDataException("Ошибка в указании типа отправления");
+            throw new EntityNotFoundException("Ошибка в указании типа отправления");
         }
     }
 
 
-    private PostOffice getPostOffice(int index) {
-        Optional<PostOffice> optionalPostOffice = postOfficeRepository.getPostOfficeByIndex(index);
-        PostOffice typePostItem;
-        if (optionalPostOffice.isEmpty()) {
-            throw new UnknownDataException("Почтового отделения с индексом " + index + " не существует");
-        } else {
-            typePostItem = optionalPostOffice.get();
-        }
-        return typePostItem;
+    private PostOffice checkPostOfficeById(int index) {
+        return postOfficeRepository.getPostOfficeByIndex(index)
+                .orElseThrow(() -> new EntityNotFoundException("Почтового отделения с индексом " + index + " не существует"));
+
     }
 
     private Address getAddress(NewPostDelivery postDelivery) {
         SenderAddress senderAddress = postDelivery.getAddress();
-        Optional<Address> optionalAddress = addressRepository.getAddressBySenderAddress(senderAddress.getIndex(),
-                senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
-                senderAddress.getFlatNumber());
-        if (optionalAddress.isEmpty()) {
-            throw new UnknownDataException("Указанный адрес отсутствует в базе");
-        } else {
-            return optionalAddress.get();
+        return addressRepository.getAddressBySenderAddress(senderAddress.getIndex(),
+                        senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
+                        senderAddress.getFlatNumber())
+                .orElseThrow(() -> new EntityNotFoundException("Указанный адрес отсутствует в базе"));
+
+
+//        SenderAddress senderAddress = postDelivery.getAddress();
+//        Optional<Address> optionalAddress = addressRepository.getAddressBySenderAddress(senderAddress.getIndex(),
+//                senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
+//                senderAddress.getFlatNumber());
+//        if (optionalAddress.isEmpty()) {
+//            throw new EntityNotFoundException("Указанный адрес отсутствует в базе");
+//        } else {
+//            return optionalAddress.get();
+//        }
+    }
+
+    private PostItem checkDeliveryById(long itemId) {
+        return postRepository.findById(itemId).
+                orElseThrow(() -> new EntityNotFoundException("Почтового отправления с индексом " + itemId + " не существует"));
+
+
+//        Optional<PostItem> optionalPostItem = postRepository.findById(itemId);
+//        PostItem postItem;
+//        if (optionalPostItem.isEmpty()) {
+//            throw new EntityNotFoundException("Почтового отправления с индексом " + itemId + " не существует");
+//        } else {
+//            postItem = optionalPostItem.get();
+//        }
+//        return postItem;
+    }
+
+
+    private boolean checkIsItemInPostOffice(long itemId, int ownIndex) {
+
+        Optional<List<StageDelivery>> deliveries = stageDeliveryRepository.findByItemId(itemId);
+        if (deliveries.isPresent()) {
+            List<StageDelivery> deliveriesList = deliveries.get()
+                    .stream()
+                    .sorted(Comparator.comparing(StageDelivery::getOperationTime))
+                    .collect(Collectors.toList());
+            StageDelivery stageDelivery = deliveriesList.get(deliveriesList.size() - 1);
+
+            return ownIndex == stageDelivery.getSenderOffice().getIndex();
         }
+        return false;
+    }
+
+    private boolean checkIsItemToPostOffice(long itemId, int ownIndex) {
+
+        Optional<List<StageDelivery>> deliveries = stageDeliveryRepository.findByItemId(itemId);
+        if (deliveries.isPresent()) {
+            List<StageDelivery> deliveriesList = deliveries.get()
+                    .stream()
+                    .sorted(Comparator.comparing(StageDelivery::getOperationTime))
+                    .collect(Collectors.toList());
+            StageDelivery stageDelivery = deliveriesList.get(deliveriesList.size() - 1);
+
+            return ownIndex == stageDelivery.getRecipientOffice().getIndex();
+        }
+        return false;
     }
 }

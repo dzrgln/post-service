@@ -10,9 +10,11 @@ public interface PostService {
 
     PostItem registerArrivedPostDelivery(int ownIndex, long id);
 
-    PostItem registerDeparturePostDelivery(int ownIndex, long deliveryId);
+    PostItem registerDeparturePostDelivery(int ownIndex, int recipientOfficeId, long idd);
 
-    PostItem registerReceivingPostDelivery(long id);
+    PostItem registerReceivingPostDelivery(int ownIndex, long id);
 
     PostDeliveryHistory getHistory(long ownerId, long postId);
+
+    PostItem registerReceivePostDelivery(int ownIndex, long id);
 }

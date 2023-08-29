@@ -19,8 +19,12 @@ public class StageDelivery {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "OFFICE_ID")
-    private PostOffice office;
+    @JoinColumn(name = "SENDER_OFFICE_ID")
+    private PostOffice senderOffice;
+
+    @ManyToOne
+    @JoinColumn(name = "RECIPIENT_OFFICE_ID")
+    private PostOffice recipientOffice;
 
     @ManyToOne
     @JoinColumn(name = "ITEM_ID")
