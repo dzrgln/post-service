@@ -2,10 +2,7 @@ package ru.skyeng.postservice.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.NoRepositoryBean;
 import ru.skyeng.postservice.model.Address;
-import ru.skyeng.postservice.model.PostItem;
-import ru.skyeng.postservice.model.dto.SenderAddress;
 
 import java.util.Optional;
 

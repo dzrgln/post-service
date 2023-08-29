@@ -28,7 +28,7 @@ public class PostController {
         return postService.createPostItem(postOfficeInd, typePostDelivery, postDelivery);
     }
 
-    @GetMapping("/register/departure")
+    @PutMapping("/register/departure")
     public PostItem registerDeparturePostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                               @RequestBody DeliveryId deliveryId,
                                               @RequestParam(name = "where", defaultValue = "0") int recipientOfficeId) {
@@ -37,31 +37,30 @@ public class PostController {
         return postService.registerDeparturePostDelivery(postOfficeInd, recipientOfficeId, deliveryId.getId());
     }
 
-    @GetMapping("/register/arrival")
+    @PutMapping("/register/arrival")
     public PostItem registerArrivalPostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                             @RequestBody DeliveryId deliveryId) {
         log.info("В отделение {} прибыла посылка с трек-номером {}", postOfficeInd, deliveryId.getId());
         return postService.registerArrivedPostDelivery(postOfficeInd, deliveryId.getId());
     }
 
-    @GetMapping("/register/receiving")
+    @PutMapping("/register/receiving")
     public PostItem registerReceivingPostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                               @RequestBody DeliveryId deliveryId) {
         log.info("Посылка с трек-номером {}, готова к получению в пункте {}", deliveryId.getId(), postOfficeInd);
         return postService.registerReceivingPostDelivery(postOfficeInd, deliveryId.getId());
     }
 
-    @GetMapping("/register/receive")
+    @PutMapping("/register/receive")
     public PostItem registerReceivePostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
-                                    @RequestBody DeliveryId deliveryId) {
+                                            @RequestBody DeliveryId deliveryId) {
         log.info("Посылка с трек-номером {} получена", deliveryId.getId());
         return postService.registerReceivePostDelivery(postOfficeInd, deliveryId.getId());
     }
 
     @GetMapping("/tracking/{postId}")
-    public PostDeliveryHistory getHistory(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                          @PathVariable Long postId) {
-        log.info("Пользователем {} запрошена история по посылке {}", userId, postId);
-        return postService.getHistory(userId, postId);
+    public PostDeliveryHistory getHistory(@PathVariable Long postId) {
+        log.info("Получен на получение исторнии перемещения по посылке {}", postId);
+        return postService.getHistory(postId);
     }
 }

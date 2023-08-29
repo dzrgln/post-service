@@ -1,6 +1,5 @@
 package ru.skyeng.postservice.repository;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.skyeng.postservice.model.StageDelivery;

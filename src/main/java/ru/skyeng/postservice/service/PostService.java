@@ -14,7 +14,7 @@ public interface PostService {
 
     PostItem registerReceivingPostDelivery(int postOfficeInd, long id);
 
-    PostDeliveryHistory getHistory(long postOfficeInd, long postId);
+    PostDeliveryHistory getHistory(long postId);
 
     PostItem registerReceivePostDelivery(int postOfficeInd, long id);
 }

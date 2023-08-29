@@ -3,9 +3,6 @@ package ru.skyeng.postservice.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.LinkedList;
-import java.util.List;
-
 @Data
 @Entity
 @RequiredArgsConstructor
@@ -27,7 +24,7 @@ public class PostItem {
     private TypePostItem typePostItem;
 
     @ManyToOne
-    @JoinColumn(name="ADDRESS_ID")
+    @JoinColumn(name = "ADDRESS_ID")
     private Address address;
 
     private String sender;

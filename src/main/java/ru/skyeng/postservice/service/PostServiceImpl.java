@@ -4,8 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import ru.skyeng.postservice.exceptions.UnknownDataException;
 import ru.skyeng.postservice.model.*;
 import ru.skyeng.postservice.model.dto.NewPostDelivery;
 import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
@@ -14,6 +14,7 @@ import ru.skyeng.postservice.model.enums.PostType;
 import ru.skyeng.postservice.repository.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class PostServiceImpl implements PostService {
                 .build()
         );
         fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(1, "Зарегистрировано в отделении"));
-        log.info("Saving was good id={}", postItem.getId());
+        log.info("Посылка успешно зарегестрированна в отделении id отправления = {}", postItem.getId());
         return postItem;
     }
 
@@ -56,10 +57,10 @@ public class PostServiceImpl implements PostService {
         PostItem postItem = checkDeliveryById(id);
         if (checkIsItemInPostOffice(id, postOfficeInd)) {
             fixStageDelivery(postItem, senderOffice, recipientOffice, new StatusDelivery(3, "Отправлено из отделения"));
-            log.info("Package moved OUT by Post Delivery successfully");
+            log.info("Посылка успешно отправлена из отделения");
             return postItem;
         } else {
-            throw new UnknownDataException("Посылка сейчас находится не в том метсте, откуда пришел запрос на отправление");
+            throw new DataIntegrityViolationException("Посылка сейчас находится не в том метсте, откуда пришел запрос на отправление");
         }
     }
 
@@ -70,10 +71,10 @@ public class PostServiceImpl implements PostService {
 
         if (checkIsItemToPostOffice(id, ownIndex)) {
             fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(2, "Прибыло в отделение"));
-            log.info("Package moved IN Post Delivery successfully");
+            log.info("Посылка успешно прибыла в пункт назначения");
             return postItem;
         } else {
-            throw new UnknownDataException("Посылка отправлена не в том метсте, откуда пришел запрос на отправление");
+            throw new DataIntegrityViolationException("Посылка была отправлена не в то метсто, откуда пришел запрос на прибытие");
         }
     }
 
@@ -84,9 +85,9 @@ public class PostServiceImpl implements PostService {
         PostItem postItem = checkDeliveryById(id);
         if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
             fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(4, "Готово к выдаче"));
-            log.info("Package moved OUT by Post Delivery successfully");
+            log.info("Послыка успешно подготовленна к выдаче");
         } else {
-            throw new UnknownDataException("Посылка находится не в месте ее назначения");
+            throw new DataIntegrityViolationException("Посылка находится не в месте ее назначения");
         }
         return postItem;
     }
@@ -97,24 +98,27 @@ public class PostServiceImpl implements PostService {
         PostItem postItem = checkDeliveryById(id);
         if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
             fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(5, "Получено адресатом"));
-            log.info("The package was successfully delivered to the recipient");
+            log.info("Посылка успешно вручена");
         } else {
-            throw new UnknownDataException("Посылка находится не в месте где ее должны получить");
+            throw new DataIntegrityViolationException("Посылка находится не в месте где ее должны получить");
         }
         return postItem;
     }
 
     @Override
-    public PostDeliveryHistory getHistory(long ownerId, long postId) {
+    public PostDeliveryHistory getHistory(long postId) {
 
-//        PostOffice postOffice = checkPostOffice(ownIndex);
-//        PostItem postItem = checkDeliveryId(id);
-        return null;
+        PostItem postItem = checkDeliveryById(postId);
+        List<StageDelivery> stageDeliveries = stageDeliveryRepository.findByItemId(postId)
+                .orElse(Collections.emptyList());
+        PostDeliveryHistory deliveryHistory = new PostDeliveryHistory();
+        deliveryHistory.setStageDeliveryList(stageDeliveries);
+        return deliveryHistory;
     }
 
 
-    private StageDelivery fixStageDelivery(PostItem postItem, PostOffice senderOffice,
-                                           PostOffice recipientOffice, StatusDelivery status) {
+    private void fixStageDelivery(PostItem postItem, PostOffice senderOffice,
+                                  PostOffice recipientOffice, StatusDelivery status) {
         StageDelivery stageDelivery = StageDelivery.builder()
                 .item(postItem)
                 .senderOffice(senderOffice)
@@ -122,7 +126,7 @@ public class PostServiceImpl implements PostService {
                 .statusDelivery(status)
                 .operationTime(LocalDateTime.now())
                 .build();
-        return stageDeliveryRepository.save(stageDelivery);
+        stageDeliveryRepository.save(stageDelivery);
     }
 
     private TypePostItem getTypePostItem(String aliasTypePostItem) {
