@@ -8,13 +8,13 @@ import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
 public interface PostService {
     PostItem createPostItem(int idPostOffice, String typePostDelivery, NewPostDelivery postDelivery);
 
-    PostItem registerArrivedPostDelivery(int ownIndex, long id);
+    PostItem registerArrivedPostDelivery(int postOfficeInd, long id);
 
-    PostItem registerDeparturePostDelivery(int ownIndex, int recipientOfficeId, long idd);
+    PostItem registerDeparturePostDelivery(int postOfficeInd, int recipientOfficeId, long idd);
 
-    PostItem registerReceivingPostDelivery(int ownIndex, long id);
+    PostItem registerReceivingPostDelivery(int postOfficeInd, long id);
 
-    PostDeliveryHistory getHistory(long ownerId, long postId);
+    PostDeliveryHistory getHistory(long postOfficeInd, long postId);
 
-    PostItem registerReceivePostDelivery(int ownIndex, long id);
+    PostItem registerReceivePostDelivery(int postOfficeInd, long id);
 }

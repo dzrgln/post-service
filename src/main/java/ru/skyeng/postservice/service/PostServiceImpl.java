@@ -32,14 +32,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public PostItem createPostItem(int index, String aliasTypePostItem, NewPostDelivery postDelivery) {
+    public PostItem createPostItem(int postOfficeInd, String aliasTypePostItem, NewPostDelivery postDelivery) {
         Address address = getAddress(postDelivery);
         TypePostItem typePostItem = getTypePostItem(aliasTypePostItem);
-        PostOffice postOffice = checkPostOfficeById(index);
+        PostOffice postOffice = checkPostOfficeById(postOfficeInd);
         PostItem postItem = postRepository.save(PostItem.builder()
                 .typePostItem(typePostItem)
                 .address(address)
-                .index(index)
+                .index(postOfficeInd)
                 .sender(postDelivery.getUser())
                 .build()
         );
@@ -49,12 +49,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostItem registerDeparturePostDelivery(int ownIndex, int recipientOfficeId, long id) {
-        PostOffice senderOffice = checkPostOfficeById(ownIndex);
+    public PostItem registerDeparturePostDelivery(int postOfficeInd, int recipientOfficeId, long id) {
+        PostOffice senderOffice = checkPostOfficeById(postOfficeInd);
         PostOffice recipientOffice = checkPostOfficeById(recipientOfficeId);
 
         PostItem postItem = checkDeliveryById(id);
-        if (checkIsItemInPostOffice(id, ownIndex)) {
+        if (checkIsItemInPostOffice(id, postOfficeInd)) {
             fixStageDelivery(postItem, senderOffice, recipientOffice, new StatusDelivery(3, "Отправлено из отделения"));
             log.info("Package moved OUT by Post Delivery successfully");
             return postItem;
@@ -149,32 +149,12 @@ public class PostServiceImpl implements PostService {
                         senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
                         senderAddress.getFlatNumber())
                 .orElseThrow(() -> new EntityNotFoundException("Указанный адрес отсутствует в базе"));
-
-
-//        SenderAddress senderAddress = postDelivery.getAddress();
-//        Optional<Address> optionalAddress = addressRepository.getAddressBySenderAddress(senderAddress.getIndex(),
-//                senderAddress.getCity(), senderAddress.getStreet(), senderAddress.getHouseNumber(),
-//                senderAddress.getFlatNumber());
-//        if (optionalAddress.isEmpty()) {
-//            throw new EntityNotFoundException("Указанный адрес отсутствует в базе");
-//        } else {
-//            return optionalAddress.get();
-//        }
     }
 
     private PostItem checkDeliveryById(long itemId) {
         return postRepository.findById(itemId).
                 orElseThrow(() -> new EntityNotFoundException("Почтового отправления с индексом " + itemId + " не существует"));
 
-
-//        Optional<PostItem> optionalPostItem = postRepository.findById(itemId);
-//        PostItem postItem;
-//        if (optionalPostItem.isEmpty()) {
-//            throw new EntityNotFoundException("Почтового отправления с индексом " + itemId + " не существует");
-//        } else {
-//            postItem = optionalPostItem.get();
-//        }
-//        return postItem;
     }
 
 

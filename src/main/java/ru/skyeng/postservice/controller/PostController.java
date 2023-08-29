@@ -19,43 +19,43 @@ public class PostController {
     private final PostServiceImpl postService;
 
     @PostMapping("/new/{typePostDelivery}")
-    public PostItem createPostDelivery(@RequestHeader("X-Post-Office-Id") int ownIndex,
+    public PostItem createPostDelivery(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                        @PathVariable("typePostDelivery") String typePostDelivery,
                                        @RequestBody NewPostDelivery postDelivery) {
         log.info("В отделении {} зарегистрировано и отправлено новое отправление - {} с параметрами:" +
                         "индекс - {}, адрес получателя - {}, имя получателя - {}",
-                ownIndex, typePostDelivery, postDelivery.getIndex(), postDelivery.getAddress(), postDelivery.getUser());
-        return postService.createPostItem(ownIndex, typePostDelivery, postDelivery);
+                postOfficeInd, typePostDelivery, postDelivery.getIndex(), postDelivery.getAddress(), postDelivery.getUser());
+        return postService.createPostItem(postOfficeInd, typePostDelivery, postDelivery);
     }
 
     @GetMapping("/register/departure")
-    public PostItem registerDeparturePostItem(@RequestHeader("X-Post-Office-Id") int ownIndex,
+    public PostItem registerDeparturePostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                               @RequestBody DeliveryId deliveryId,
                                               @RequestParam(name = "where", defaultValue = "0") int recipientOfficeId) {
-        log.info("Из отделения {} в пункт {} отправлена посылка с трек-номером {}", ownIndex, recipientOfficeId,
+        log.info("Из отделения {} в пункт {} отправлена посылка с трек-номером {}", postOfficeInd, recipientOfficeId,
                 deliveryId.getId());
-        return postService.registerDeparturePostDelivery(ownIndex, recipientOfficeId, deliveryId.getId());
+        return postService.registerDeparturePostDelivery(postOfficeInd, recipientOfficeId, deliveryId.getId());
     }
 
     @GetMapping("/register/arrival")
-    public PostItem registerArrivalPostItem(@RequestHeader("X-Post-Office-Id") int ownIndex,
+    public PostItem registerArrivalPostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                             @RequestBody DeliveryId deliveryId) {
-        log.info("В отделение {} прибыла посылка с трек-номером {}", ownIndex, deliveryId.getId());
-        return postService.registerArrivedPostDelivery(ownIndex, deliveryId.getId());
+        log.info("В отделение {} прибыла посылка с трек-номером {}", postOfficeInd, deliveryId.getId());
+        return postService.registerArrivedPostDelivery(postOfficeInd, deliveryId.getId());
     }
 
     @GetMapping("/register/receiving")
-    public PostItem registerReceivingPostItem(@RequestHeader("X-Post-Office-Id") int ownIndex,
+    public PostItem registerReceivingPostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                               @RequestBody DeliveryId deliveryId) {
-        log.info("Посылка с трек-номером {}, готова к получению в пункте {}", deliveryId.getId(), ownIndex);
-        return postService.registerReceivingPostDelivery(ownIndex, deliveryId.getId());
+        log.info("Посылка с трек-номером {}, готова к получению в пункте {}", deliveryId.getId(), postOfficeInd);
+        return postService.registerReceivingPostDelivery(postOfficeInd, deliveryId.getId());
     }
 
     @GetMapping("/register/receive")
-    public PostItem registerReceivePostItem(@RequestHeader("X-Post-Office-Id") int ownIndex,
+    public PostItem registerReceivePostItem(@RequestHeader("X-Post-Office-Id") int postOfficeInd,
                                     @RequestBody DeliveryId deliveryId) {
         log.info("Посылка с трек-номером {} получена", deliveryId.getId());
-        return postService.registerReceivePostDelivery(ownIndex, deliveryId.getId());
+        return postService.registerReceivePostDelivery(postOfficeInd, deliveryId.getId());
     }
 
     @GetMapping("/tracking/{postId}")
