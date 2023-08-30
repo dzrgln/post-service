@@ -10,7 +10,6 @@ import ru.skyeng.postservice.model.*;
 import ru.skyeng.postservice.model.dto.NewPostDelivery;
 import ru.skyeng.postservice.model.dto.PostDeliveryHistory;
 import ru.skyeng.postservice.model.dto.SenderAddress;
-import ru.skyeng.postservice.model.enums.PostType;
 import ru.skyeng.postservice.repository.*;
 
 import java.time.LocalDateTime;
@@ -44,7 +43,7 @@ public class PostServiceImpl implements PostService {
                 .sender(postDelivery.getUser())
                 .build()
         );
-        fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(1, "Зарегистрировано в отделении"));
+        saveStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(1, "Зарегистрировано в отделении"));
         log.info("Посылка успешно зарегестрированна в отделении id отправления = {}", postItem.getId());
         return postItem;
     }
@@ -56,7 +55,7 @@ public class PostServiceImpl implements PostService {
 
         PostItem postItem = checkDeliveryById(id);
         if (checkIsItemInPostOffice(id, postOfficeInd)) {
-            fixStageDelivery(postItem, senderOffice, recipientOffice, new StatusDelivery(3, "Отправлено из отделения"));
+            saveStageDelivery(postItem, senderOffice, recipientOffice, new StatusDelivery(3, "Отправлено из отделения"));
             log.info("Посылка успешно отправлена из отделения");
             return postItem;
         } else {
@@ -70,7 +69,7 @@ public class PostServiceImpl implements PostService {
         PostItem postItem = checkDeliveryById(id);
 
         if (checkIsItemToPostOffice(id, ownIndex)) {
-            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(2, "Прибыло в отделение"));
+            saveStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(2, "Прибыло в отделение"));
             log.info("Посылка успешно прибыла в пункт назначения");
             return postItem;
         } else {
@@ -84,7 +83,7 @@ public class PostServiceImpl implements PostService {
         PostOffice postOffice = checkPostOfficeById(ownIndex);
         PostItem postItem = checkDeliveryById(id);
         if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
-            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(4, "Готово к выдаче"));
+            saveStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(4, "Готово к выдаче"));
             log.info("Послыка успешно подготовленна к выдаче");
         } else {
             throw new DataIntegrityViolationException("Посылка находится не в месте ее назначения");
@@ -97,8 +96,8 @@ public class PostServiceImpl implements PostService {
         PostOffice postOffice = checkPostOfficeById(ownIndex);
         PostItem postItem = checkDeliveryById(id);
         if (postOffice.getIndex() == postItem.getAddress().getIndex()) {
-            fixStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(5, "Получено адресатом"));
-            log.info("Посылка успешно вручена");
+            saveStageDelivery(postItem, postOffice, postOffice, new StatusDelivery(5, "Получено адресатом"));
+            log.info("Получено адресатом");
         } else {
             throw new DataIntegrityViolationException("Посылка находится не в месте где ее должны получить");
         }
@@ -117,7 +116,7 @@ public class PostServiceImpl implements PostService {
     }
 
 
-    private void fixStageDelivery(PostItem postItem, PostOffice senderOffice,
+    private void saveStageDelivery(PostItem postItem, PostOffice senderOffice,
                                   PostOffice recipientOffice, StatusDelivery status) {
         StageDelivery stageDelivery = StageDelivery.builder()
                 .item(postItem)
@@ -130,21 +129,13 @@ public class PostServiceImpl implements PostService {
     }
 
     private TypePostItem getTypePostItem(String aliasTypePostItem) {
-
-        try {
-            PostType.valueOf(aliasTypePostItem.toUpperCase());
-            Optional<TypePostItem> optionalTypePostItem = typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem);
-            return optionalTypePostItem.get();
-        } catch (IllegalArgumentException e) {
-            throw new EntityNotFoundException("Ошибка в указании типа отправления");
-        }
+        return typePostItemRepository.getTypePostItemByAlias(aliasTypePostItem)
+                .orElseThrow(() -> new EntityNotFoundException("Ошибка в указании типа отправления"));
     }
-
 
     private PostOffice checkPostOfficeById(int index) {
         return postOfficeRepository.getPostOfficeByIndex(index)
                 .orElseThrow(() -> new EntityNotFoundException("Почтового отделения с индексом " + index + " не существует"));
-
     }
 
     private Address getAddress(NewPostDelivery postDelivery) {
@@ -158,12 +149,10 @@ public class PostServiceImpl implements PostService {
     private PostItem checkDeliveryById(long itemId) {
         return postRepository.findById(itemId).
                 orElseThrow(() -> new EntityNotFoundException("Почтового отправления с индексом " + itemId + " не существует"));
-
     }
 
 
     private boolean checkIsItemInPostOffice(long itemId, int ownIndex) {
-
         Optional<List<StageDelivery>> deliveries = stageDeliveryRepository.findByItemId(itemId);
         if (deliveries.isPresent()) {
             List<StageDelivery> deliveriesList = deliveries.get()
@@ -171,7 +160,6 @@ public class PostServiceImpl implements PostService {
                     .sorted(Comparator.comparing(StageDelivery::getOperationTime))
                     .collect(Collectors.toList());
             StageDelivery stageDelivery = deliveriesList.get(deliveriesList.size() - 1);
-
             return ownIndex == stageDelivery.getSenderOffice().getIndex();
         }
         return false;
