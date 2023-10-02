@@ -1,38 +1,37 @@
-# java-post-service
+# <span style="color: white">**JAVA-post-service**
+____
+![JAVA-post-service](post-service.jpg)
 
-Бэкенд web-сервиса, который будет работать с вещами, что пользователи хотят сдать или взять в аренду.
+### <span style="color: white">Данное приложение предназначено для фиксации отправления, отслеживания перемещения между почтовами пунктами и выдачей посылок
 
-### Реализованы следующие эндпоинты:
 
-#### 1. Пользователи
+<span style="color: white">Приложение использует слудющие технологии:
+- Java 
+- Spring Boot (web, validation, data-jpa)
+- Maven
+- используемая БД - PostgreSQL
+- Lombok
+- JUnit и Mock тестирование
 
-* POST /users - создание пользователя
-* PATCH /users - редактирование пользователя
-* GET /users - получение списка всех пользователей
-* GET /users/{userId} - получение данных о пользователе по id
-* DELETE /users/{userId} — удаление пользователя
+<span style="color: white">___Ниже приведены эндпоинты и кратное описаних их функционала:___
+- регистрация посылки. <span style="color: green">(POST "/e-posts/new/{typePostDelivery}")
+- отправление посылки. <span style="color: green">(PUT "/e-posts/register/departure?where")
+- прибытие посылки. <span style="color: green">(PUT "/e-posts/register/arrival")
+- отметка о готовности посылки к получению. <span style="color: green">(PUT "/e-posts/register/receiving"")
+- отметка о вручении посылки. <span style="color: green">(PUT "/e-posts/register/receive"")
+- получение истории перемещения посылки. <span style="color: green">(PUT "/e-posts/tracking/{postId}"")
 
-#### 2. Вещи
+<span style="color: white">В разработке принимали участие https://github.com/AlexanderKolnakov и https://github.com/dzrgln:
 
-* POST /items - создание вещи у пользователя
-* PATCH /items/{itemId} - редактирование вещи пользователя
-* GET /items - получение списка всех вещей пользователя
-* GET /items/{itemId} - получение информации о вещи по ее id у пользователя
-* GET /items/search?text={text} — поиск вещи по ее названию или описанию
 
-#### 3. Бронирование (booking)
 
-* POST /bookings - создание бронирования
-* PATCH /bookings - редактирование бронирования, подтверждение бронирования для владельца вещи
-* GET /bookings - получение списка всех бронирований (/owner - для владельца вещи)
-*
-    + поиск по статусу бронирования (по умолчанию статус ALL)
-* GET /bookings/{userId} - получение данных о бронировании по id
 
-Данные хранятся в БД. Схема БД представлена в фале schema.sql.
 
-*Дата создания первой версии: 22.11.2022* <br>
-*Дата последнего обновления: 08.01.2023*
 
-Скриншот покрытия покрытия кода тестами
-![img.png](img.png)
+
+
+
+
+
+
+
